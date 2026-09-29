@@ -4,6 +4,8 @@ import { createUserWithEmailAndPassword, getAuth, onAuthStateChanged, sendPasswo
 import { addDoc, collection, doc, getDoc, getDocs, getFirestore, onSnapshot, orderBy, query, setDoc, updateDoc, where } from 'firebase/firestore';
 import React, { useEffect, useState } from 'react';
 import { Image, Linking, Platform, SafeAreaView, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Alert } from 'react-native';
+
 
 const firebaseConfig = {
   apiKey: "AIzaSyAXrpkSdAD3aqiyViv_AUMxH6OTSiMI1Zk",
@@ -315,6 +317,7 @@ export default function App() {
   const handleSendTeamInvite = async () => {
     if (!inviteEmail || !teamName) return alert("Add meg a csapattag e-mail címét!");
     try {
+      // 1. Belső meghívó mentése az appnak (opcionális, de jó ha megmarad)
       await addDoc(collection(db, "invites"), {
         email: inviteEmail,
         team: teamName,
@@ -324,9 +327,21 @@ export default function App() {
         status: 'Függőben'
       });
 
-      const emailMessage = `Meghívást kaptál a Diáknapokra! Töltsd le az appot, regisztrálj, majd kapod az e-mailt a jóváhagyással és lépj be, hogy minden információt időben tudj meg a Diáknapokról! (Csapat: ${teamName}, Szerep: ${inviteRole})`;
+      // 2. VALÓS E-MAIL KÜLDÉSE a Firebase Trigger Email bővítménynek
+      await addDoc(collection(db, "mail"), {
+        to: inviteEmail,
+        message: {
+          subject: "Meghívás a Diáknapokra! 🚀",
+          text: `Szia! Meghívást kaptál a(z) ${teamName} csapatba, mint ${inviteRole}. Töltsd le az appot és regisztrálj!`,
+          html: `
+            <h3>Szia!</h3>
+            <p>Meghívást kaptál a(z) <b>${teamName}</b> csapatba, mint <b>${inviteRole}</b>.</p>
+            <p>Töltsd le az appot és regisztrálj, hogy csatlakozhass a csapathoz és ne maradj le semmiről!</p>
+          `
+        }
+      });
       
-      alert(`Meghívó sikeresen elküldve ide: ${inviteEmail} ✉️\n\n[Elküldött e-mail szövege]:\n"${emailMessage}"`);
+      alert(`A valós e-mail meghívó sikeresen elküldve ide: ${inviteEmail} ✉️`);
       setInviteEmail('');
     } catch (e: any) {
       alert("Hiba a meghíváskor: " + e.message);
