@@ -1,37 +1,34 @@
-import { Tabs } from 'expo-router';
-import React from 'react';
+import { DarkTheme, DefaultTheme, Stack, ThemeProvider } from 'expo-router';
+import { StatusBar } from 'expo-status-bar';
+import 'react-native-reanimated';
+import '@/i18n';
 import { useTranslation } from 'react-i18next';
 
-import { HapticTab } from '@/components/navigation/haptic-tab';
-import { IconSymbol } from '@/components/ui/icon-symbol';
-import { Colors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
+import { AuthProvider } from '@/src/context/AuthContext';
+import { ToastProvider } from '@/src/context/ToastContext';
 
-export default function TabLayout() {
+export const unstable_settings = {
+  anchor: '(tabs)',
+};
+
+export default function RootLayout() {
   const colorScheme = useColorScheme();
   const { t } = useTranslation();
 
   return (
-    <Tabs
-      screenOptions={{
-        tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint,
-        headerShown: false,
-        tabBarButton: HapticTab,
-      }}>
-      <Tabs.Screen
-        name="index"
-        options={{
-          title: t('navigation.home'),
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="house.fill" color={color} />,
-        }}
-      />
-      <Tabs.Screen
-        name="explore"
-        options={{
-          title: t('navigation.explore'),
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="paperplane.fill" color={color} />,
-        }}
-      />
-    </Tabs>
+    <AuthProvider>
+      <ToastProvider> 
+        <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+          <Stack screenOptions={{ headerShown: false }}>
+            <Stack.Screen name="index" />
+            <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+            <Stack.Screen name="modal" options={{ presentation: 'modal', title: t('modal.title') }} />
+            {}
+          </Stack>
+          <StatusBar style="auto" />
+        </ThemeProvider>
+      </ToastProvider>
+    </AuthProvider>
   );
 }

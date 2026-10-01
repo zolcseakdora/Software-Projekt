@@ -15,20 +15,15 @@ import i18n from '@/i18n';
 import { auth, db } from '@/src/config/firebase';
 import { useAuth } from '@/src/context/AuthContext';
 
+import { useToast } from '@/src/context/ToastContext';
+
 export default function App() {
+const { showToast } = useToast();
 const { t } = useTranslation();
 const router = useRouter();
 const { profile, isLoggedIn, login, register, logout } = useAuth();
 
-const [toastMessage, setToastMessage] = useState('');
-const [toastType, setToastType] = useState<'success' | 'error' | 'info'>('success');
-const [isToastVisible, setIsToastVisible] = useState(false);
 
-const showToast = (message: string, type: 'success' | 'error' | 'info' = 'success') => {
-  setToastMessage(message);
-  setToastType(type);
-  setIsToastVisible(true);
-};
 const [language, setLanguage] = useState<'hu' | 'en' | null>(null);
 const [isLoginMode, setIsLoginMode] = useState<boolean>(true);
 
@@ -154,12 +149,6 @@ const [isLoginMode, setIsLoginMode] = useState<boolean>(true);
   return (
     <View style={{ flex: 1, backgroundColor: '#121212' }}>
       {activeScreen}
-      <Toast 
-        message={toastMessage} 
-        type={toastType} 
-        visible={isToastVisible} 
-        onHide={() => setIsToastVisible(false)} 
-      />
     </View>
   );
 }

@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { StyleSheet, Text, Animated } from 'react-native';
 
 type ToastProps = {
@@ -9,35 +9,33 @@ type ToastProps = {
 };
 
 export function Toast({ message, type = 'success', visible, onHide }: ToastProps) {
-  const [translateY] = useState(() => new Animated.Value(-100));
-
-  const hideToast = useCallback(() => {
-    Animated.timing(translateY, {
-      toValue: -100,
-      duration: 300,
-      useNativeDriver: true,
-    }).start(() => {
-      onHide();
-    });
-  }, [onHide, translateY]);
+  const translateY = useRef(new Animated.Value(-100)).current;
 
   useEffect(() => {
+    let timer: ReturnType<typeof setTimeout>;
+
     if (visible) {
-      // Becsúszás a képernyő tetejéről
       Animated.timing(translateY, {
         toValue: 50,
         duration: 300,
         useNativeDriver: true,
       }).start();
 
-      // 5 másodperc múlva eltűnés
-      const timer = setTimeout(() => {
-        hideToast();
-      }, 5000);
-
-      return () => clearTimeout(timer);
+      timer = setTimeout(() => {
+        Animated.timing(translateY, {
+          toValue: -100,
+          duration: 300,
+          useNativeDriver: true,
+        }).start(() => {
+          onHide(); 
+        });
+      }, 3500); 
     }
-  }, [hideToast, translateY, visible]);
+
+    return () => {
+      clearTimeout(timer);
+    };
+  }, [visible, message, onHide, translateY]);
 
   if (!visible) return null;
 
