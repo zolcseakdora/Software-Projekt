@@ -38,7 +38,7 @@ export function AuthScreen({
     <SafeAreaView style={styles.container}>
       <View style={styles.webWrapper}>
         <ScrollView contentContainerStyle={styles.scrollContainer} showsVerticalScrollIndicator={false}>
-          <Image source={require('../app/(tabs)/logo.png')} style={styles.logo} resizeMode="contain" />
+          <Image source={require('../assets/images/logo.png')} style={styles.logo} resizeMode="contain" />
           <Text style={styles.title}>{t(isLoginMode ? 'auth.loginTitle' : 'auth.registerTitle')}</Text>
           <Text style={styles.subtitle}>{t('auth.appName')}</Text>
 

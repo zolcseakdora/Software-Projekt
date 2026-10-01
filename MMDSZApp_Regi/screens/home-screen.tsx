@@ -84,13 +84,13 @@ export function HomeScreen({
             <Text style={styles.newsBadge}>🚩 {t('home.paradeTime')}</Text>
             <Text style={styles.cardTitle}>{t('home.paradeTitle')}</Text>
             <Text style={styles.cardText}>{t('home.paradeBody')}</Text>
-            <Image source={require('../app/(tabs)/felvonulas.png')} style={styles.bandImage} resizeMode="cover" />
+            <Image source={require('../assets/images/felvonulas.png')} style={styles.bandImage} resizeMode="cover" />
           </View>
           <View style={styles.newsCard}>
             <Text style={[styles.newsBadge, styles.concertBadge]}>🎸 {t('home.concertTime')}</Text>
             <Text style={styles.cardTitle}>{t('home.concertTitle')}</Text>
             <Text style={styles.cardText}>{t('home.concertBody')}</Text>
-            <Image source={require('../app/(tabs)/dondi.png')} style={styles.bandImage} resizeMode="cover" />
+            <Image source={require('../assets/images/dondi.png')} style={styles.bandImage} resizeMode="cover" />
           </View>
 
           {showIgazolasUpload && (
