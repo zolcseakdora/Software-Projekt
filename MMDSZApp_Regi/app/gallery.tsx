@@ -11,7 +11,7 @@ export default function GalleryRoute() {
       images={[]}
       onBack={() => router.back()}
       onRefresh={() => undefined}
-      onSelectFolder={(folder) => router.push({ pathname: '/gallery/[folder]/index', params: { folder } })}
+      onSelectFolder={(folder) => router.push({ pathname: '/gallery/[folder]', params: { folder } })}
       onUploadImage={() => undefined}
       onSelectImage={() => undefined}
     />

@@ -141,7 +141,7 @@ const [isLoginMode, setIsLoginMode] = useState<boolean>(true);
         onOpenSchedule={() => router.push('/schedule')}
         onOpenTeams={() => router.push('/teams')}
         onOpenMap={() => router.push('/map')}
-        onOpenGallery={() => router.push('/gallery/index')}
+        onOpenGallery={() => router.push('/gallery')}
         onOpenPhotoHunt={() => router.push('/photo-hunt')}
         onOpenTeamManagement={() => router.push('/team-management')}
         onOpenRegisteredUsers={() => router.push('/users')}
