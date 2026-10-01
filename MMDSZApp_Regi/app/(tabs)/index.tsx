@@ -1,25 +1,17 @@
 import * as ImagePicker from 'expo-image-picker';
-import { addDoc, collection, doc, getDoc, getDocs, orderBy, query, setDoc, updateDoc, where } from 'firebase/firestore';import React, { useEffect, useState } from 'react';
-import { Linking, Platform, View } from 'react-native';
+import { doc, updateDoc } from 'firebase/firestore';import React, { useEffect, useState } from 'react';
+import { View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 
-import { AdminDashboardScreen } from '@/screens/admin-dashboard-screen';
 import { AuthScreen } from '@/screens/auth-screen';
-import { GalleryImageScreen } from '@/screens/gallery-image-screen';
-import { GalleryScreen } from '@/screens/gallery-screen';
 import { HomeScreen } from '@/screens/home-screen';
 import { LanguageSelectionScreen } from '@/screens/language-selection-screen';
-import { PhotoHuntScreen } from '@/screens/photo-hunt-screen';
-import { RegisteredUsersScreen } from '@/screens/registered-users-screen';
-import { TeamManagementScreen } from '@/screens/team-management-screen';
-import { TeamsScreen } from '@/screens/teams-screen';
 import { VerificationPendingScreen } from '@/screens/verification-pending-screen';
 
 import { Toast } from '@/components/feedback/toast';
 
 import i18n from '@/i18n';
-import { EVENT_DAY_LABEL_KEYS } from '@/constants/event-days';
 import { auth, db } from '@/src/config/firebase';
 import { useAuth } from '@/src/context/AuthContext';
 
@@ -40,46 +32,16 @@ const showToast = (message: string, type: 'success' | 'error' | 'info' = 'succes
 const [language, setLanguage] = useState<'hu' | 'en' | null>(null);
 const [isLoginMode, setIsLoginMode] = useState<boolean>(true);
 
-  const [currentView, setCurrentView] = useState<string | null>(null);
-
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [teamName, setTeamName] = useState('');
   const [securePassword, setSecurePassword] = useState(true);
 
-  const [registeredUsers, setRegisteredUsers] = useState<Array<any>>([]);
-  const [galleryImages, setGalleryImages] = useState<Array<any>>([]);
-  const [selectedGalleryFolder, setSelectedGalleryFolder] = useState<string | null>(null);
-  const [selectedGalleryImage, setSelectedGalleryImage] = useState<any>(null);
-  const [photoHuntProgress, setPhotoHuntProgress] = useState<any>({});
-
-  const [allTeams, setAllTeams] = useState<Array<any>>([]);
-  const [teamDescription, setTeamDescription] = useState('');
-  const [teamVideoLink, setTeamVideoLink] = useState('');
-  const [teamLogo, setTeamLogo] = useState<string | null>(null);
-  const [teamFlag, setTeamFlag] = useState<string | null>(null);
-
-  const [inviteEmail, setInviteEmail] = useState('');
-  const [inviteRole, setInviteRole] = useState<'Csapattag' | 'Alcsapatkapitány'>('Csapattag');
-
   const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0 });
 
-  const [adminEventTitle, setAdminEventTitle] = useState('');
-  const [adminEventTime, setAdminEventTime] = useState('');
-  const [adminEventLocation, setAdminEventLocation] = useState('');
-  const [adminEventDay, setAdminEventDay] = useState('Szerda');
-  const [isUploading, setIsUploading] = useState(false);
-
-  const [pendingUsers, setPendingUsers] = useState<any[]>([]);
-  const [showPending, setShowPending] = useState(false);
-
-  const [notifTitle, setNotifTitle] = useState('');
-  const [notifBody, setNotifBody] = useState('');
 
   const userRole = profile?.role ?? 'Csapattag';
-  const sessionName = profile?.name ?? '';
-  const sessionTeam = profile?.team ?? '';
   const hasIgazolas = Boolean(profile?.igazolas);
   const isVerified = profile?.isVerified ?? false;
   const safeRole = userRole.toLowerCase();
@@ -122,7 +84,7 @@ const [isLoginMode, setIsLoginMode] = useState<boolean>(true);
     try { await login(email, password); } catch { showToast(t('alerts.wrongCredentials'), 'error'); }
   };
 
-  const handleLogout = () => { void logout(); setCurrentView(null); setSelectedGalleryFolder(null); setSelectedGalleryImage(null); resetForm(); };
+  const handleLogout = () => { void logout(); resetForm(); };
 
   const handleUploadIgazolas = async () => {
     const res = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -136,249 +98,6 @@ const [isLoginMode, setIsLoginMode] = useState<boolean>(true);
         showToast(t('alerts.idUploaded'), 'success');
       }
     } catch (e: any) { showToast(t('alerts.generic', { message: e.message }), 'error'); }
-  };
-
-  const handleUploadGalleryImage = async (folderName: string) => {
-    const res = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (!res.granted) return showToast(t('alerts.permissionRequired'), 'error');
-    try {
-      const result = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ImagePicker.MediaTypeOptions.Images, allowsMultipleSelection: true, quality: 0.15, base64: true });
-      if (!result.canceled && result.assets && result.assets.length > 0 && auth.currentUser) {
-        for (let asset of result.assets) {
-          if (asset.base64) {
-            const imgStr = `data:image/jpeg;base64,${asset.base64}`;
-            if (imgStr.length <= 1000000) {
-              await addDoc(collection(db, "gallery"), { 
-                image: imgStr, 
-                category: folderName, 
-                uploadedBy: sessionName || 'Névtelen', 
-                createdAt: new Date() 
-              });
-            }
-          }
-        }
-        showToast(t('alerts.galleryUploaded', { count: result.assets.length, folder: folderName }), 'success');
-        fetchGallery(folderName);
-      }
-    } catch (e: any) { showToast(t('alerts.generic', { message: e.message }), 'error'); }
-  };
-
-  const handleUploadPhotoHunt = async (taskId: number) => {
-    const res = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (!res.granted) return showToast(t('alerts.permissionRequired'), 'error');
-    try {
-      const result = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ImagePicker.MediaTypeOptions.All, quality: 0.1, base64: true });
-      if (!result.canceled && result.assets[0].base64 && auth.currentUser) {
-        const fileStr = `data:image/jpeg;base64,${result.assets[0].base64}`;
-        if (fileStr.length > 1000000) return showToast(t('alerts.photoTooLarge'), 'error');
-        await setDoc(doc(db, "photohunt_uploads", `${auth.currentUser.uid}_${taskId}`), { taskId: taskId, userId: auth.currentUser.uid, file: fileStr, uploadedAt: new Date() });
-        showToast(t('alerts.photoHuntUploaded'), 'success');
-        fetchPhotoHuntProgress();
-      }
-    } catch (e: any) { showToast(t('alerts.generic', { message: e.message }), 'error'); }
-  };
-
-  const handleAddAdminEvent = async () => {
-    if (!adminEventTitle || !adminEventTime || !adminEventLocation) {
-      return showToast(t('alerts.fillProgramFields'), 'error');
-    }
-    setIsUploading(true);
-    try {
-      await addDoc(collection(db, "programs"), {
-        title: adminEventTitle,
-        time: adminEventTime,
-        helyszín: adminEventLocation,
-        day: adminEventDay,
-        createdAt: new Date(),
-        createdBy: auth.currentUser?.uid
-      });
-      const dayKey = EVENT_DAY_LABEL_KEYS[adminEventDay as keyof typeof EVENT_DAY_LABEL_KEYS];
-      showToast(t('alerts.programAdded', { day: dayKey ? t(dayKey) : adminEventDay }), 'success');
-      setAdminEventTitle('');
-      setAdminEventTime('');
-      setAdminEventLocation('');
-    } catch (error: any) {
-      showToast(t('alerts.generic', { message: error.message }), 'error');
-    } finally {
-      setIsUploading(false);
-    }
-  };
-  const fetchPendingUsers = async () => {
-    try {
-      const q = query(collection(db, "users"));
-      const snapshot = await getDocs(q);
-      const list: any[] = [];
-      snapshot.forEach(doc => {
-        const data = doc.data();
-        if (data.igazolas) {
-          list.push({ id: doc.id, ...data });
-        }
-      });
-      setPendingUsers(list);
-      setShowPending(true);
-    } catch (e) {
-      console.error(e);
-    }
-  };
-
-  const handleApproveId = async (userId: string) => {
-    try {
-      await updateDoc(doc(db, "users", userId), { isVerified: true });
-      showToast(t('alerts.idApproved'), 'success');
-      fetchPendingUsers();
-    } catch (error: any) {
-      showToast(t('alerts.generic', { message: error.message }), 'error');
-    }
-  };
-
-  const handleSendNotification = async () => {
-    if (!notifTitle || !notifBody) return showToast(t('alerts.notificationRequired'), 'error');
-    try {
-      await addDoc(collection(db, "notifications"), {
-        title: notifTitle,
-        body: notifBody,
-        createdAt: new Date(),
-      });
-      showToast(t('alerts.notificationSent'), 'success');
-      setNotifTitle('');
-      setNotifBody('');
-    } catch (e: any) {
-      showToast(t('alerts.generic', { message: e.message }), 'error');
-    }
-  };
-
-  const handleSendTeamInvite = async () => {
-    if (!inviteEmail || !sessionTeam) return showToast(t('alerts.inviteEmailRequired'), 'error');
-    try {
-      const translatedInviteRole = inviteRole === 'Csapattag' ? t('roles.member') : t('roles.deputy');
-      const inviteEmailBody = t('teamManagement.inviteEmailBody', { teamName: sessionTeam, role: translatedInviteRole });
-      // 1. Belső meghívó mentése az appnak (opcionális, de jó ha megmarad)
-      await addDoc(collection(db, "invites"), {
-        email: inviteEmail,
-        team: sessionTeam,
-        role: inviteRole,
-        invitedBy: sessionName || 'Csapatkapitány',
-        createdAt: new Date(),
-        status: 'Függőben'
-      });
-
-      // 2. VALÓS E-MAIL KÜLDÉSE a Firebase Trigger Email bővítménynek
-      await addDoc(collection(db, "mail"), {
-        to: inviteEmail,
-        message: {
-          subject: t('teamManagement.inviteEmailSubject'),
-          text: `${t('teamManagement.inviteEmailGreeting')} ${inviteEmailBody} ${t('teamManagement.inviteEmailAction')}`,
-          html: `
-            <h3>${t('teamManagement.inviteEmailGreeting')}</h3>
-            <p>${inviteEmailBody}</p>
-            <p>${t('teamManagement.inviteEmailAction')}</p>
-          `
-        }
-      });
-      
-      showToast(t('alerts.inviteSent', { email: inviteEmail }), 'success');
-      setInviteEmail('');
-    } catch (e: any) {
-      showToast(t('alerts.generic', { message: e.message }), 'error');
-    }
-  };
-
-  const fetchTeamData = async () => {
-    if (!sessionTeam) return;
-    try {
-      const docRef = doc(db, "teams", sessionTeam);
-      const docSnap = await getDoc(docRef);
-      if (docSnap.exists()) {
-        const d = docSnap.data();
-        setTeamDescription(d.description || '');
-        setTeamVideoLink(d.videoLink || '');
-        setTeamLogo(d.logo || null);
-        setTeamFlag(d.flag || null);
-      }
-    } catch (e) { console.error(e); }
-  };
-
-  const handleSaveTeamData = async () => {
-    if (!sessionTeam) return showToast(t('alerts.teamNameRequired'), 'error');
-    try {
-      await setDoc(doc(db, "teams", sessionTeam), { description: teamDescription, videoLink: teamVideoLink, updatedAt: new Date(), name: sessionTeam }, { merge: true });
-      showToast(t('alerts.teamSaved'), 'success');
-    } catch (e: any) { showToast(t('alerts.generic', { message: e.message }), 'error'); }
-  };
-
-  const handleUploadTeamImage = async (type: 'logo' | 'flag') => {
-    if (!sessionTeam) return showToast(t('alerts.teamNameRequired'), 'error');
-    const res = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (!res.granted) return showToast(t('alerts.permissionRequired'), 'error');
-    try {
-      const result = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ImagePicker.MediaTypeOptions.Images, allowsEditing: true, quality: 0.15, base64: true });
-      if (!result.canceled && result.assets[0].base64) {
-        const imgStr = `data:image/jpeg;base64,${result.assets[0].base64}`;
-        if (imgStr.length > 1000000) return showToast(t('alerts.teamImageTooLarge'), 'error');
-        await setDoc(doc(db, "teams", sessionTeam), { [type]: imgStr, name: sessionTeam }, { merge: true });
-        if (type === 'logo') setTeamLogo(imgStr);
-        if (type === 'flag') setTeamFlag(imgStr);
-        showToast(t(type === 'logo' ? 'alerts.teamLogoUpdated' : 'alerts.teamFlagUpdated'), 'success');
-      }
-    } catch (e: any) { showToast(t('alerts.generic', { message: e.message }), 'error'); }
-  };
-
-  const fetchAllTeams = async () => {
-    try {
-      const q = query(collection(db, "teams"));
-      const snapshot = await getDocs(q);
-      const list: any[] = [];
-      snapshot.forEach(doc => list.push({ id: doc.id, ...doc.data() }));
-      setAllTeams(list);
-    } catch (e) { console.error(e); }
-  };
-
-  const fetchRegisteredUsers = async () => {
-    const q = query(collection(db, "users"), orderBy("createdAt", "desc"));
-    const snapshot = await getDocs(q);
-    const list: any[] = [];
-    snapshot.forEach(doc => list.push({ id: doc.id, ...doc.data() }));
-    setRegisteredUsers(list);
-  };
-
-  const fetchGallery = async (folderName: string) => {
-    try {
-      const q = query(collection(db, "gallery"), where("category", "==", folderName));
-      const snapshot = await getDocs(q);
-      const list: any[] = [];
-      snapshot.forEach(doc => {
-        const data = doc.data();
-        if (data.image && data.image.length > 10) list.push({ id: doc.id, ...data });
-      });
-      setGalleryImages(list);
-    } catch (e) { console.error(e); }
-  };
-
-  const fetchPhotoHuntProgress = async () => {
-    if (!auth.currentUser) return;
-    try {
-      const q = query(collection(db, "photohunt_uploads"));
-      const snapshot = await getDocs(q);
-      const progress: any = {};
-      snapshot.forEach(doc => {
-        const data = doc.data();
-        if (data.userId === auth.currentUser?.uid) progress[data.taskId] = true;
-      });
-      setPhotoHuntProgress(progress);
-    } catch (e) { console.error(e); }
-  };
-
-  const handleDownloadImage = (imageBase64: string) => {
-    if (Platform.OS === 'web') {
-      const link = document.createElement('a');
-      link.href = imageBase64;
-      link.download = `diaknapok_${Date.now()}.jpg`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-    } else {
-      Linking.openURL(imageBase64).catch(() => showToast(t('alerts.downloadFailed'), 'error'));
-    }
   };
 
   // 1. Meghatározzuk, hogy éppen melyik képernyőt kell mutatni
@@ -406,95 +125,6 @@ const [isLoginMode, setIsLoginMode] = useState<boolean>(true);
     );
   } else if (isLoggedIn && !isVerified && userRole !== 'Főszervező') {
     activeScreen = <VerificationPendingScreen hasIgazolas={hasIgazolas} onUploadIgazolas={handleUploadIgazolas} onLogout={handleLogout} />;
-  } else if (currentView === 'allTeams') {
-    activeScreen = (
-      <TeamsScreen
-        teams={allTeams}
-        onBack={() => setCurrentView(null)}
-        onRefresh={fetchAllTeams}
-        onOpenVideo={(videoLink) => {
-          if (videoLink) Linking.openURL(videoLink).catch(() => showToast(t('alerts.openLinkFailed'), 'error'));
-          else showToast(t('alerts.noTeamVideo'), 'info');
-        }}
-      />
-    );
-  } else if (currentView === 'teamManagement') {
-    activeScreen = (
-      <TeamManagementScreen
-        teamName={sessionTeam}
-        teamDescription={teamDescription}
-        teamVideoLink={teamVideoLink}
-        teamLogo={teamLogo}
-        teamFlag={teamFlag}
-        inviteEmail={inviteEmail}
-        inviteRole={inviteRole}
-        onBack={() => setCurrentView(null)}
-        onRefresh={fetchTeamData}
-        onDescriptionChange={setTeamDescription}
-        onVideoLinkChange={setTeamVideoLink}
-        onUploadTeamImage={handleUploadTeamImage}
-        onSaveTeamData={handleSaveTeamData}
-        onInviteEmailChange={setInviteEmail}
-        onInviteRoleChange={setInviteRole}
-        onSendTeamInvite={handleSendTeamInvite}
-      />
-    );
-  } else if (selectedGalleryImage) {
-    activeScreen = (
-      <GalleryImageScreen
-        image={selectedGalleryImage}
-        onBack={() => setSelectedGalleryImage(null)}
-        onDownloadImage={handleDownloadImage}
-      />
-    );
-  } else if (currentView === 'gallery') {
-    activeScreen = (
-      <GalleryScreen
-        selectedFolder={selectedGalleryFolder}
-        images={galleryImages}
-        onBack={() => { if (selectedGalleryFolder) setSelectedGalleryFolder(null); else setCurrentView(null); }}
-        onRefresh={fetchGallery}
-        onSelectFolder={(folder) => { setSelectedGalleryFolder(folder); fetchGallery(folder); }}
-        onUploadImage={handleUploadGalleryImage}
-        onSelectImage={setSelectedGalleryImage}
-      />
-    );
-  } else if (currentView === 'photohunt') {
-    activeScreen = (
-      <PhotoHuntScreen
-        progress={photoHuntProgress}
-        onBack={() => setCurrentView(null)}
-        onRefresh={fetchPhotoHuntProgress}
-        onUpload={handleUploadPhotoHunt}
-      />
-    );
-  } else if (currentView === 'usersList') {
-    activeScreen = <RegisteredUsersScreen users={registeredUsers} onBack={() => setCurrentView(null)} onRefresh={fetchRegisteredUsers} />;
-  } else if (currentView === 'adminDashboard') {
-    activeScreen = (
-      <AdminDashboardScreen
-        adminEventDay={adminEventDay}
-        adminEventTitle={adminEventTitle}
-        adminEventTime={adminEventTime}
-        adminEventLocation={adminEventLocation}
-        isUploading={isUploading}
-        notifTitle={notifTitle}
-        notifBody={notifBody}
-        showPending={showPending}
-        pendingUsers={pendingUsers}
-        onBack={() => setCurrentView(null)}
-        onEventDayChange={setAdminEventDay}
-        onEventTitleChange={setAdminEventTitle}
-        onEventTimeChange={setAdminEventTime}
-        onEventLocationChange={setAdminEventLocation}
-        onAddEvent={handleAddAdminEvent}
-        onNotifTitleChange={setNotifTitle}
-        onNotifBodyChange={setNotifBody}
-        onSendNotification={handleSendNotification}
-        onFetchPendingUsers={fetchPendingUsers}
-        onApproveUser={handleApproveId}
-      />
-    );
   } else {
     activeScreen = (
       <HomeScreen
@@ -509,13 +139,13 @@ const [isLoginMode, setIsLoginMode] = useState<boolean>(true);
         onLogout={handleLogout}
         onUploadIgazolas={handleUploadIgazolas}
         onOpenSchedule={() => router.push('/schedule/index')}
-        onOpenTeams={() => { fetchAllTeams(); setCurrentView('allTeams'); }}
+        onOpenTeams={() => router.push('/teams/index')}
         onOpenMap={() => router.push('/map')}
-        onOpenGallery={() => { setSelectedGalleryFolder(null); setCurrentView('gallery'); }}
-        onOpenPhotoHunt={() => { fetchPhotoHuntProgress(); setCurrentView('photohunt'); }}
-        onOpenTeamManagement={() => { fetchTeamData(); setCurrentView('teamManagement'); }}
-        onOpenRegisteredUsers={() => { fetchRegisteredUsers(); setCurrentView('usersList'); }}
-        onOpenAdmin={() => setCurrentView('adminDashboard')}
+        onOpenGallery={() => router.push('/gallery/index')}
+        onOpenPhotoHunt={() => router.push('/photo-hunt')}
+        onOpenTeamManagement={() => router.push('/team-management')}
+        onOpenRegisteredUsers={() => router.push('/users')}
+        onOpenAdmin={() => router.push('/admin')}
       />
     );
   }
