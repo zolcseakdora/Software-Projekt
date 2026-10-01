@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { StyleSheet, Text, Animated } from 'react-native';
 
 type ToastProps = {
@@ -9,7 +9,7 @@ type ToastProps = {
 };
 
 export function Toast({ message, type = 'success', visible, onHide }: ToastProps) {
-  const translateY = useRef(new Animated.Value(-100)).current;
+  const [translateY] = useState(() => new Animated.Value(-100));
 
   const hideToast = useCallback(() => {
     Animated.timing(translateY, {

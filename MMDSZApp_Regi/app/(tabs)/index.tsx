@@ -1,6 +1,5 @@
 import * as ImagePicker from 'expo-image-picker';
-import { createUserWithEmailAndPassword, onAuthStateChanged, sendPasswordResetEmail, signInWithEmailAndPassword, signOut } from 'firebase/auth';
-import { addDoc, collection, doc, getDoc, getDocs, onSnapshot, orderBy, query, setDoc, updateDoc, where, deleteDoc } from 'firebase/firestore';import React, { useEffect, useState } from 'react';
+import { addDoc, collection, doc, getDoc, getDocs, orderBy, query, setDoc, updateDoc, where, deleteDoc } from 'firebase/firestore';import React, { useEffect, useState } from 'react';
 import { Linking, Platform, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 
@@ -25,9 +24,11 @@ import { Toast } from '@/components/feedback/toast';
 import i18n from '@/i18n';
 import { EVENT_DAY_LABEL_KEYS } from '@/constants/event-days';
 import { auth, db } from '@/src/config/firebase';
+import { useAuth } from '@/src/context/AuthContext';
 
 export default function App() {
 const { t } = useTranslation();
+const { user, profile, isLoggedIn, login, register, logout } = useAuth();
 
 const [toastMessage, setToastMessage] = useState('');
 const [toastType, setToastType] = useState<'success' | 'error' | 'info'>('success');
@@ -41,10 +42,6 @@ const showToast = (message: string, type: 'success' | 'error' | 'info' = 'succes
 const [language, setLanguage] = useState<'hu' | 'en' | null>(null);
 const [isLoginMode, setIsLoginMode] = useState<boolean>(true);
 
-  const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
-  const [userRole, setUserRole] = useState<string>('Csapattag');
-  const [hasIgazolas, setHasIgazolas] = useState<boolean>(false);
-  const [isVerified, setIsVerified] = useState<boolean>(false);
   const [currentView, setCurrentView] = useState<string | null>(null);
 
   const [fullName, setFullName] = useState('');
@@ -52,7 +49,6 @@ const [isLoginMode, setIsLoginMode] = useState<boolean>(true);
   const [password, setPassword] = useState('');
   const [teamName, setTeamName] = useState('');
   const [securePassword, setSecurePassword] = useState(true);
-  const [profileImage, setProfileImage] = useState<string | null>(null);
 
   const [registeredUsers, setRegisteredUsers] = useState<Array<any>>([]);
   const [programs, setPrograms] = useState<Array<any>>([]);
@@ -87,7 +83,13 @@ const [isLoginMode, setIsLoginMode] = useState<boolean>(true);
   const [notifTitle, setNotifTitle] = useState('');
   const [notifBody, setNotifBody] = useState('');
 
-  const safeRole = (userRole || '').toLowerCase();
+  const userRole = profile?.role ?? 'Csapattag';
+  const sessionName = profile?.name ?? '';
+  const sessionTeam = profile?.team ?? '';
+  const profileImage = profile?.profileImage ?? null;
+  const hasIgazolas = Boolean(profile?.igazolas);
+  const isVerified = profile?.isVerified ?? false;
+  const safeRole = userRole.toLowerCase();
   const isOrganizerOrHead = safeRole.includes('szervez');
   const showIgazolasUpload = safeRole.includes('csapat') || safeRole.includes('kapitany') || safeRole.includes('kapitány');
   const isCaptainOrDeputy = safeRole.includes('kapitany') || safeRole.includes('kapitány');
@@ -109,40 +111,8 @@ const [isLoginMode, setIsLoginMode] = useState<boolean>(true);
       }
     }, 1000);
 
-    let unsubscribeDb: (() => void) | undefined;
-    const unsubscribeAuth = onAuthStateChanged(auth, (user) => {
-      unsubscribeDb?.();
-      if (user) {
-        unsubscribeDb = onSnapshot(doc(db, 'users', user.uid), (docSnap) => {
-          if (docSnap.exists()) {
-            const data = docSnap.data();
-            
-            if (user.email === 'dorazolcseak@gmail.com') {
-              setUserRole('Főszervező');
-            } else {
-              setUserRole(data.role || 'Csapattag');
-            }
-
-            setHasIgazolas(!!data.igazolas);
-            setIsVerified(!!data.isVerified);
-            setFullName(data.name || '');
-            setTeamName(data.team || '');
-            setProfileImage(data.profileImage || null);
-            setIsLoggedIn(true);
-          }
-        });
-      } else {
-        setIsLoggedIn(false);
-        setUserRole('Csapattag');
-        setHasIgazolas(false);
-        setIsVerified(false);
-      }
-    });
-
     return () => {
       clearInterval(timer);
-      unsubscribeAuth();
-      unsubscribeDb?.();
     };
   }, []);
 
@@ -150,30 +120,16 @@ const [isLoginMode, setIsLoginMode] = useState<boolean>(true);
 
   const handleRegister = async () => {
     if (!fullName || !email || !password) return showToast(t('alerts.requiredFields'), 'error');
-    try {
-      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-      await setDoc(doc(db, "users", userCredential.user.uid), { 
-        name: fullName, 
-        email: email, 
-        team: teamName || 'Egyéni', 
-        role: 'Csapattag', 
-        createdAt: new Date(), 
-        isVerified: false 
-      });
-    } catch (error: any) { showToast(t('alerts.generic', { message: error.message }), 'error'); }
+    try { await register({ name: fullName, email, password, team: teamName }); }
+    catch (error: any) { showToast(t('alerts.generic', { message: error.message }), 'error'); }
   };
 
   const handleLogin = async () => {
     if (!email || !password) return showToast(t('alerts.emailPasswordRequired'), 'error');
-    try { await signInWithEmailAndPassword(auth, email, password); } catch (error: any) { showToast(t('alerts.wrongCredentials'), 'error'); }
+    try { await login(email, password); } catch { showToast(t('alerts.wrongCredentials'), 'error'); }
   };
 
-  const handleForgotPassword = async () => {
-    if (!email) return showToast(t('alerts.enterEmailForReset'), 'error');
-    try { await sendPasswordResetEmail(auth, email); showToast(t('alerts.resetEmailSent'), 'success'); } catch (error: any) { showToast(t('alerts.generic', { message: error.message }), 'error'); }
-  };
-
-  const handleLogout = () => { signOut(auth); setCurrentView(null); setSelectedProgram(null); setSelectedGalleryFolder(null); setSelectedGalleryImage(null); resetForm(); };
+  const handleLogout = () => { void logout(); setCurrentView(null); setSelectedProgram(null); setSelectedGalleryFolder(null); setSelectedGalleryImage(null); resetForm(); };
 
   const handleUploadIgazolas = async () => {
     const res = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -198,7 +154,6 @@ const [isLoginMode, setIsLoginMode] = useState<boolean>(true);
         const imgStr = `data:image/jpeg;base64,${result.assets[0].base64}`;
         if (imgStr.length > 1000000) return showToast(t('alerts.imageTooLarge'), 'error');
         await updateDoc(doc(db, "users", auth.currentUser.uid), { profileImage: imgStr });
-        setProfileImage(imgStr);
         showToast(t('alerts.profileUpdated'), 'success');
       }
     } catch (e: any) { showToast(t('alerts.generic', { message: e.message }), 'error'); }
@@ -217,7 +172,7 @@ const [isLoginMode, setIsLoginMode] = useState<boolean>(true);
               await addDoc(collection(db, "gallery"), { 
                 image: imgStr, 
                 category: folderName, 
-                uploadedBy: fullName || 'Névtelen', 
+                uploadedBy: sessionName || 'Névtelen', 
                 createdAt: new Date() 
               });
             }
@@ -330,16 +285,16 @@ const [isLoginMode, setIsLoginMode] = useState<boolean>(true);
   };
 
   const handleSendTeamInvite = async () => {
-    if (!inviteEmail || !teamName) return showToast(t('alerts.inviteEmailRequired'), 'error');
+    if (!inviteEmail || !sessionTeam) return showToast(t('alerts.inviteEmailRequired'), 'error');
     try {
       const translatedInviteRole = inviteRole === 'Csapattag' ? t('roles.member') : t('roles.deputy');
-      const inviteEmailBody = t('teamManagement.inviteEmailBody', { teamName, role: translatedInviteRole });
+      const inviteEmailBody = t('teamManagement.inviteEmailBody', { teamName: sessionTeam, role: translatedInviteRole });
       // 1. Belső meghívó mentése az appnak (opcionális, de jó ha megmarad)
       await addDoc(collection(db, "invites"), {
         email: inviteEmail,
-        team: teamName,
+        team: sessionTeam,
         role: inviteRole,
-        invitedBy: fullName || 'Csapatkapitány',
+        invitedBy: sessionName || 'Csapatkapitány',
         createdAt: new Date(),
         status: 'Függőben'
       });
@@ -366,9 +321,9 @@ const [isLoginMode, setIsLoginMode] = useState<boolean>(true);
   };
 
   const fetchTeamData = async () => {
-    if (!teamName) return;
+    if (!sessionTeam) return;
     try {
-      const docRef = doc(db, "teams", teamName);
+      const docRef = doc(db, "teams", sessionTeam);
       const docSnap = await getDoc(docRef);
       if (docSnap.exists()) {
         const d = docSnap.data();
@@ -381,15 +336,15 @@ const [isLoginMode, setIsLoginMode] = useState<boolean>(true);
   };
 
   const handleSaveTeamData = async () => {
-    if (!teamName) return showToast(t('alerts.teamNameRequired'), 'error');
+    if (!sessionTeam) return showToast(t('alerts.teamNameRequired'), 'error');
     try {
-      await setDoc(doc(db, "teams", teamName), { description: teamDescription, videoLink: teamVideoLink, updatedAt: new Date(), name: teamName }, { merge: true });
+      await setDoc(doc(db, "teams", sessionTeam), { description: teamDescription, videoLink: teamVideoLink, updatedAt: new Date(), name: sessionTeam }, { merge: true });
       showToast(t('alerts.teamSaved'), 'success');
     } catch (e: any) { showToast(t('alerts.generic', { message: e.message }), 'error'); }
   };
 
   const handleUploadTeamImage = async (type: 'logo' | 'flag') => {
-    if (!teamName) return showToast(t('alerts.teamNameRequired'), 'error');
+    if (!sessionTeam) return showToast(t('alerts.teamNameRequired'), 'error');
     const res = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (!res.granted) return showToast(t('alerts.permissionRequired'), 'error');
     try {
@@ -397,7 +352,7 @@ const [isLoginMode, setIsLoginMode] = useState<boolean>(true);
       if (!result.canceled && result.assets[0].base64) {
         const imgStr = `data:image/jpeg;base64,${result.assets[0].base64}`;
         if (imgStr.length > 1000000) return showToast(t('alerts.teamImageTooLarge'), 'error');
-        await setDoc(doc(db, "teams", teamName), { [type]: imgStr, name: teamName }, { merge: true });
+        await setDoc(doc(db, "teams", sessionTeam), { [type]: imgStr, name: sessionTeam }, { merge: true });
         if (type === 'logo') setTeamLogo(imgStr);
         if (type === 'flag') setTeamFlag(imgStr);
         showToast(t(type === 'logo' ? 'alerts.teamLogoUpdated' : 'alerts.teamFlagUpdated'), 'success');
@@ -519,9 +474,9 @@ const [isLoginMode, setIsLoginMode] = useState<boolean>(true);
   } else if (currentView === 'profile') {
     activeScreen = (
       <ProfileScreen
-        name={fullName}
-        email={auth.currentUser?.email}
-        team={teamName}
+        name={sessionName}
+        email={user?.email}
+        team={sessionTeam}
         role={userRole}
         profileImage={profileImage}
         hasIgazolas={hasIgazolas}
@@ -545,7 +500,7 @@ const [isLoginMode, setIsLoginMode] = useState<boolean>(true);
   } else if (currentView === 'teamManagement') {
     activeScreen = (
       <TeamManagementScreen
-        teamName={teamName}
+        teamName={sessionTeam}
         teamDescription={teamDescription}
         teamVideoLink={teamVideoLink}
         teamLogo={teamLogo}
