@@ -2,11 +2,11 @@ import { Image } from 'expo-image';
 import { Platform, StyleSheet } from 'react-native';
 import { useTranslation } from 'react-i18next';
 
-import { Collapsible } from '@/components/ui/collapsible';
-import { ExternalLink } from '@/components/external-link';
-import ParallaxScrollView from '@/components/parallax-scroll-view';
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
+import { Collapsible } from '@/components/features/explore/collapsible';
+import ParallaxScrollView from '@/components/features/explore/parallax-scroll-view';
+import { ExternalLink } from '@/components/navigation/external-link';
+import { ThemedText } from '@/components/shared/themed-text';
+import { ThemedView } from '@/components/shared/themed-view';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { Fonts } from '@/constants/theme';
 

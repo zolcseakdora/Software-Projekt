@@ -1,7 +1,7 @@
 import { Image, SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 
-import { MenuButton } from '@/components/menu-button';
+import { MenuButton } from '@/components/features/home/menu-button';
 
 type HomeScreenProps = {
   userRole: string;

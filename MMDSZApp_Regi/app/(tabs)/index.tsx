@@ -21,7 +21,7 @@ import { TeamManagementScreen } from '@/screens/team-management-screen';
 import { TeamsScreen } from '@/screens/teams-screen';
 import { VerificationPendingScreen } from '@/screens/verification-pending-screen';
 
-import { Toast } from '@/components/toast';
+import { Toast } from '@/components/feedback/toast';
 
 import i18n from '@/i18n';
 import { EVENT_DAY_LABEL_KEYS } from '@/constants/event-days';
