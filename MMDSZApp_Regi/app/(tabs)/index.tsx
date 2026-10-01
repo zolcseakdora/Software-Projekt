@@ -1,6 +1,7 @@
 import * as ImagePicker from 'expo-image-picker';
-import { addDoc, collection, doc, getDoc, getDocs, orderBy, query, setDoc, updateDoc, where, deleteDoc } from 'firebase/firestore';import React, { useEffect, useState } from 'react';
+import { addDoc, collection, doc, getDoc, getDocs, orderBy, query, setDoc, updateDoc, where } from 'firebase/firestore';import React, { useEffect, useState } from 'react';
 import { Linking, Platform, View } from 'react-native';
+import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 
 import { AdminDashboardScreen } from '@/screens/admin-dashboard-screen';
@@ -9,12 +10,8 @@ import { GalleryImageScreen } from '@/screens/gallery-image-screen';
 import { GalleryScreen } from '@/screens/gallery-screen';
 import { HomeScreen } from '@/screens/home-screen';
 import { LanguageSelectionScreen } from '@/screens/language-selection-screen';
-import { MapScreen } from '@/screens/map-screen';
 import { PhotoHuntScreen } from '@/screens/photo-hunt-screen';
-import { ProgramDetailsScreen } from '@/screens/program-details-screen';
-import { ProfileScreen } from '@/screens/profile-screen';
 import { RegisteredUsersScreen } from '@/screens/registered-users-screen';
-import { ScheduleScreen } from '@/screens/schedule-screen';
 import { TeamManagementScreen } from '@/screens/team-management-screen';
 import { TeamsScreen } from '@/screens/teams-screen';
 import { VerificationPendingScreen } from '@/screens/verification-pending-screen';
@@ -28,7 +25,8 @@ import { useAuth } from '@/src/context/AuthContext';
 
 export default function App() {
 const { t } = useTranslation();
-const { user, profile, isLoggedIn, login, register, logout } = useAuth();
+const router = useRouter();
+const { profile, isLoggedIn, login, register, logout } = useAuth();
 
 const [toastMessage, setToastMessage] = useState('');
 const [toastType, setToastType] = useState<'success' | 'error' | 'info'>('success');
@@ -51,13 +49,10 @@ const [isLoginMode, setIsLoginMode] = useState<boolean>(true);
   const [securePassword, setSecurePassword] = useState(true);
 
   const [registeredUsers, setRegisteredUsers] = useState<Array<any>>([]);
-  const [programs, setPrograms] = useState<Array<any>>([]);
-  const [mapPoints, setMapPoints] = useState<Array<any>>([]);
   const [galleryImages, setGalleryImages] = useState<Array<any>>([]);
   const [selectedGalleryFolder, setSelectedGalleryFolder] = useState<string | null>(null);
   const [selectedGalleryImage, setSelectedGalleryImage] = useState<any>(null);
   const [photoHuntProgress, setPhotoHuntProgress] = useState<any>({});
-  const [selectedProgram, setSelectedProgram] = useState<any>(null);
 
   const [allTeams, setAllTeams] = useState<Array<any>>([]);
   const [teamDescription, setTeamDescription] = useState('');
@@ -68,7 +63,6 @@ const [isLoginMode, setIsLoginMode] = useState<boolean>(true);
   const [inviteEmail, setInviteEmail] = useState('');
   const [inviteRole, setInviteRole] = useState<'Csapattag' | 'Alcsapatkapitány'>('Csapattag');
 
-  const [selectedCategory, setSelectedCategory] = useState<string>('Szerda');
   const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0 });
 
   const [adminEventTitle, setAdminEventTitle] = useState('');
@@ -86,7 +80,6 @@ const [isLoginMode, setIsLoginMode] = useState<boolean>(true);
   const userRole = profile?.role ?? 'Csapattag';
   const sessionName = profile?.name ?? '';
   const sessionTeam = profile?.team ?? '';
-  const profileImage = profile?.profileImage ?? null;
   const hasIgazolas = Boolean(profile?.igazolas);
   const isVerified = profile?.isVerified ?? false;
   const safeRole = userRole.toLowerCase();
@@ -129,7 +122,7 @@ const [isLoginMode, setIsLoginMode] = useState<boolean>(true);
     try { await login(email, password); } catch { showToast(t('alerts.wrongCredentials'), 'error'); }
   };
 
-  const handleLogout = () => { void logout(); setCurrentView(null); setSelectedProgram(null); setSelectedGalleryFolder(null); setSelectedGalleryImage(null); resetForm(); };
+  const handleLogout = () => { void logout(); setCurrentView(null); setSelectedGalleryFolder(null); setSelectedGalleryImage(null); resetForm(); };
 
   const handleUploadIgazolas = async () => {
     const res = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -141,20 +134,6 @@ const [isLoginMode, setIsLoginMode] = useState<boolean>(true);
         if (imgStr.length > 1000000) return showToast(t('alerts.imageTooLarge'), 'error');
         await updateDoc(doc(db, "users", auth.currentUser.uid), { igazolas: imgStr, isVerified: false });
         showToast(t('alerts.idUploaded'), 'success');
-      }
-    } catch (e: any) { showToast(t('alerts.generic', { message: e.message }), 'error'); }
-  };
-
-  const handleUploadProfileImage = async () => {
-    const res = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (!res.granted) return showToast(t('alerts.permissionRequired'), 'error');
-    try {
-      const result = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ImagePicker.MediaTypeOptions.Images, allowsEditing: true, aspect: [1, 1], quality: 0.1, base64: true });
-      if (!result.canceled && result.assets[0].base64 && auth.currentUser) {
-        const imgStr = `data:image/jpeg;base64,${result.assets[0].base64}`;
-        if (imgStr.length > 1000000) return showToast(t('alerts.imageTooLarge'), 'error');
-        await updateDoc(doc(db, "users", auth.currentUser.uid), { profileImage: imgStr });
-        showToast(t('alerts.profileUpdated'), 'success');
       }
     } catch (e: any) { showToast(t('alerts.generic', { message: e.message }), 'error'); }
   };
@@ -224,22 +203,6 @@ const [isLoginMode, setIsLoginMode] = useState<boolean>(true);
       setIsUploading(false);
     }
   };
-  const handleDeleteProgram = async (programId: string) => {
-      try {
-        // Törlés a Firestore-ból
-        await deleteDoc(doc(db, "programs", programId));
-        
-        // Lokális lista frissítése azonnal (hogy eltűnjön a képernyőről)
-        setPrograms(prev => prev.filter(p => p.id !== programId));
-        
-        // Ha épp nyitva volt a részletek nézet, zárjuk be
-        if (selectedProgram?.id === programId) {
-          setSelectedProgram(null);
-        }
-      } catch (error: any) {
-        console.error("Hiba az esemény törlésekor:", error);
-      }
-    };
   const fetchPendingUsers = async () => {
     try {
       const q = query(collection(db, "users"));
@@ -378,34 +341,6 @@ const [isLoginMode, setIsLoginMode] = useState<boolean>(true);
     setRegisteredUsers(list);
   };
 
-  const getFestivalTimeScore = (timeStr: string) => {
-    if (!timeStr) return 99999;
-    const match = timeStr.match(/(\d{1,2}):(\d{2})/);
-    if (!match) return 99999;
-    let h = parseInt(match[1], 10);
-    const m = parseInt(match[2], 10);
-    if (h < 7) h += 24;
-    return h * 60 + m;
-  };
-
-  const fetchPrograms = async () => {
-    const q = query(collection(db, "programs"));
-    const snapshot = await getDocs(q);
-    const list: any[] = [];
-    snapshot.forEach(doc => list.push({ id: doc.id, ...doc.data() }));
-    list.sort((a, b) => getFestivalTimeScore(a.time) - getFestivalTimeScore(b.time));
-    setPrograms(list);
-  };
-
-  const fetchMapPoints = async () => {
-    try {
-      const snapshot = await getDocs(collection(db, "map_points"));
-      const list: any[] = [];
-      snapshot.forEach(doc => list.push({ id: doc.id, ...doc.data() }));
-      setMapPoints(list);
-    } catch (e) { console.error(e); }
-  };
-
   const fetchGallery = async (folderName: string) => {
     try {
       const q = query(collection(db, "gallery"), where("category", "==", folderName));
@@ -471,20 +406,6 @@ const [isLoginMode, setIsLoginMode] = useState<boolean>(true);
     );
   } else if (isLoggedIn && !isVerified && userRole !== 'Főszervező') {
     activeScreen = <VerificationPendingScreen hasIgazolas={hasIgazolas} onUploadIgazolas={handleUploadIgazolas} onLogout={handleLogout} />;
-  } else if (currentView === 'profile') {
-    activeScreen = (
-      <ProfileScreen
-        name={sessionName}
-        email={user?.email}
-        team={sessionTeam}
-        role={userRole}
-        profileImage={profileImage}
-        hasIgazolas={hasIgazolas}
-        isVerified={isVerified}
-        onBack={() => setCurrentView(null)}
-        onUploadProfileImage={handleUploadProfileImage}
-      />
-    );
   } else if (currentView === 'allTeams') {
     activeScreen = (
       <TeamsScreen
@@ -538,30 +459,6 @@ const [isLoginMode, setIsLoginMode] = useState<boolean>(true);
         onSelectImage={setSelectedGalleryImage}
       />
     );
-  } else if (currentView === 'map') {
-    activeScreen = <MapScreen points={mapPoints} onBack={() => setCurrentView(null)} onRefresh={fetchMapPoints} />;
-  } else if (selectedProgram) {
-    activeScreen = (
-      <ProgramDetailsScreen 
-        program={selectedProgram} 
-        isAdmin={isOrganizerOrHead}
-        onDelete={handleDeleteProgram}
-        onBack={() => setSelectedProgram(null)} 
-      />
-    );
-  } else if (currentView === 'schedule') {
-    activeScreen = (
-      <ScheduleScreen
-        programs={programs}
-        selectedCategory={selectedCategory}
-        isAdmin={isOrganizerOrHead}
-        onDelete={handleDeleteProgram}
-        onBack={() => setCurrentView(null)}
-        onRefresh={fetchPrograms}
-        onSelectCategory={setSelectedCategory}
-        onSelectProgram={setSelectedProgram}
-      />
-    );
   } else if (currentView === 'photohunt') {
     activeScreen = (
       <PhotoHuntScreen
@@ -608,12 +505,12 @@ const [isLoginMode, setIsLoginMode] = useState<boolean>(true);
         isVerified={isVerified}
         isCaptainOrDeputy={isCaptainOrDeputy}
         isOrganizerOrHead={isOrganizerOrHead}
-        onOpenProfile={() => setCurrentView('profile')}
+        onOpenProfile={() => router.push('/profile')}
         onLogout={handleLogout}
         onUploadIgazolas={handleUploadIgazolas}
-        onOpenSchedule={() => { fetchPrograms(); setCurrentView('schedule'); }}
+        onOpenSchedule={() => router.push('/schedule/index')}
         onOpenTeams={() => { fetchAllTeams(); setCurrentView('allTeams'); }}
-        onOpenMap={() => { fetchMapPoints(); setCurrentView('map'); }}
+        onOpenMap={() => router.push('/map')}
         onOpenGallery={() => { setSelectedGalleryFolder(null); setCurrentView('gallery'); }}
         onOpenPhotoHunt={() => { fetchPhotoHuntProgress(); setCurrentView('photohunt'); }}
         onOpenTeamManagement={() => { fetchTeamData(); setCurrentView('teamManagement'); }}
