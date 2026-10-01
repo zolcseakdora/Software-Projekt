@@ -1,7 +1,6 @@
 import * as ImagePicker from 'expo-image-picker';
-import { initializeApp } from 'firebase/app';
-import { createUserWithEmailAndPassword, getAuth, onAuthStateChanged, sendPasswordResetEmail, signInWithEmailAndPassword, signOut } from 'firebase/auth';
-import { addDoc, collection, doc, getDoc, getDocs, getFirestore, onSnapshot, orderBy, query, setDoc, updateDoc, where, deleteDoc } from 'firebase/firestore';import React, { useEffect, useState } from 'react';
+import { createUserWithEmailAndPassword, onAuthStateChanged, sendPasswordResetEmail, signInWithEmailAndPassword, signOut } from 'firebase/auth';
+import { addDoc, collection, doc, getDoc, getDocs, onSnapshot, orderBy, query, setDoc, updateDoc, where, deleteDoc } from 'firebase/firestore';import React, { useEffect, useState } from 'react';
 import { Linking, Platform, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 
@@ -25,18 +24,7 @@ import { Toast } from '@/components/feedback/toast';
 
 import i18n from '@/i18n';
 import { EVENT_DAY_LABEL_KEYS } from '@/constants/event-days';
-
-const firebaseConfig = {
-  apiKey: "AIzaSyAXrpkSdAD3aqiyViv_AUMxH6OTSiMI1Zk",
-  authDomain: "allamvizsga-47738.firebaseapp.com",
-  projectId: "allamvizsga-47738",
-  storageBucket: "allamvizsga-47738.firebasestorage.app",
-  messagingSenderId: "100668962875",
-  appId: "1:100668962875:web:f0472077febd029a64841e"
-};
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
+import { auth, db } from '@/src/config/firebase';
 
 export default function App() {
 const { t } = useTranslation();

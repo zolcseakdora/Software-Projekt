@@ -1,5 +1,5 @@
-import React, { useEffect } from 'react';
-import { StyleSheet, Text, View, Animated } from 'react-native';
+import React, { useCallback, useEffect, useRef } from 'react';
+import { StyleSheet, Text, Animated } from 'react-native';
 
 type ToastProps = {
   message: string;
@@ -9,7 +9,17 @@ type ToastProps = {
 };
 
 export function Toast({ message, type = 'success', visible, onHide }: ToastProps) {
-  const translateY = new Animated.Value(-100);
+  const translateY = useRef(new Animated.Value(-100)).current;
+
+  const hideToast = useCallback(() => {
+    Animated.timing(translateY, {
+      toValue: -100,
+      duration: 300,
+      useNativeDriver: true,
+    }).start(() => {
+      onHide();
+    });
+  }, [onHide, translateY]);
 
   useEffect(() => {
     if (visible) {
@@ -27,17 +37,7 @@ export function Toast({ message, type = 'success', visible, onHide }: ToastProps
 
       return () => clearTimeout(timer);
     }
-  }, [visible]);
-
-  const hideToast = () => {
-    Animated.timing(translateY, {
-        toValue: -100,
-        duration: 300,
-        useNativeDriver: true,
-    }).start(() => {
-      onHide();
-    });
-  };
+  }, [hideToast, translateY, visible]);
 
   if (!visible) return null;
 
