@@ -20,6 +20,7 @@ const initialAuthState: AuthState = {
 
 type AuthContextValue = AuthState & {
   isLoggedIn: boolean;
+  isLoading: boolean;
   login: (email: string, password: string) => Promise<void>;
   register: (input: RegistrationInput) => Promise<void>;
   resetPassword: (email: string) => Promise<void>;
@@ -77,6 +78,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
   const value: AuthContextValue = {
     ...authState,
     isLoggedIn: authState.status === 'authenticated',
+    isLoading: authState.status === 'loading',
     login: async (email, password) => {
       await signInWithEmailAndPassword(auth, email, password);
     },
