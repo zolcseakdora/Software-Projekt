@@ -1,6 +1,6 @@
 import { useRouter } from 'expo-router';
 
-import { GalleryScreen } from '@/screens/gallery-screen';
+import { GalleryScreen } from '@/src/screens/gallery-screen';
 
 export default function GalleryRoute() {
   const router = useRouter();

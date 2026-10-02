@@ -3,7 +3,7 @@ import { Alert } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 
-import { GalleryScreen } from '@/screens/gallery-screen';
+import { GalleryScreen } from '@/src/screens/gallery-screen';
 import { useAuth } from '@/src/context/AuthContext';
 import { useGallery } from '@/src/hooks/use-gallery';
 

@@ -3,7 +3,7 @@ import { Alert } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 
-import { ProgramDetailsScreen } from '@/screens/program-details-screen';
+import { ProgramDetailsScreen } from '@/src/screens/program-details-screen';
 import { useAuth } from '@/src/context/AuthContext';
 import { usePrograms } from '@/src/hooks/use-programs';
 import type { Program } from '@/src/types/program';

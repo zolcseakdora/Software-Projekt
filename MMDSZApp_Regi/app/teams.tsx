@@ -2,7 +2,7 @@ import { Linking } from 'react-native';
 import { useEffect } from 'react';
 import { useRouter } from 'expo-router';
 
-import { TeamsScreen } from '@/screens/teams-screen';
+import { TeamsScreen } from '@/src/screens/teams-screen';
 import { useTeams } from '@/src/hooks/use-teams';
 
 export default function TeamsRoute() {

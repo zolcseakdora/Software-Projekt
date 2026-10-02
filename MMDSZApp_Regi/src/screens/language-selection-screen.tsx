@@ -11,7 +11,7 @@ export function LanguageSelectionScreen({ onSelectLanguage }: LanguageSelectionS
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.webWrapper}>
-        <Image source={require('../assets/images/logo.png')} style={styles.logo} resizeMode="contain" />
+        <Image source={require('@/assets/images/logo.png')} style={styles.logo} resizeMode="contain" />
         <Text style={styles.title}>{t('language.title')}</Text>
         <TouchableOpacity style={styles.outlineButton} onPress={() => onSelectLanguage('hu')}>
           <Text style={styles.outlineButtonText}>{t('language.hungarian')}</Text>

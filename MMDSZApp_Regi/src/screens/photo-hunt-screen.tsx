@@ -1,7 +1,7 @@
 import { SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 
-import { PHOTO_HUNT_TASKS } from '@/constants/photo-hunt';
+import { PHOTO_HUNT_TASKS } from '@/src/constants/photo-hunt';
 
 type PhotoHuntScreenProps = {
   progress: Record<number, boolean>;

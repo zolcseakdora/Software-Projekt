@@ -1,7 +1,7 @@
 import { Image, SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 
-import { GALLERY_FOLDERS } from '@/constants/gallery';
+import { GALLERY_FOLDERS } from '@/src/constants/gallery';
 
 type GalleryImage = {
   id: string;

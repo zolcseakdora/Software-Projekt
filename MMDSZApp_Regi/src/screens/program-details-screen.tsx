@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Image, SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View, Modal } from 'react-native';
 import { useTranslation } from 'react-i18next';
 
-import { EVENT_DAY_LABEL_KEYS } from '@/constants/event-days';
+import { EVENT_DAY_LABEL_KEYS } from '@/src/constants/event-days';
 
 type ProgramDetails = {
   id?: string; // Hozzáadtuk az ID-t a törléshez

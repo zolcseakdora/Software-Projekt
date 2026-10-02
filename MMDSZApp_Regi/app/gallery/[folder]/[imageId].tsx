@@ -3,7 +3,7 @@ import { Alert, Linking, Platform } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 
-import { GalleryImageScreen } from '@/screens/gallery-image-screen';
+import { GalleryImageScreen } from '@/src/screens/gallery-image-screen';
 import { useGallery } from '@/src/hooks/use-gallery';
 import type { GalleryImage } from '@/src/types/gallery';
 

@@ -1,7 +1,7 @@
 import { useRouter } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import i18n from '@/i18n';
-import { LanguageSelectionScreen } from '@/screens/language-selection-screen';
+import i18n from '@/src/i18n';
+import { LanguageSelectionScreen } from '@/src/screens/language-selection-screen';
 
 export default function LanguageRoute() {
   const router = useRouter();

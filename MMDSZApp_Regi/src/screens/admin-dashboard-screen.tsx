@@ -1,8 +1,8 @@
 import { Image, SafeAreaView, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 
-import { FilterChip } from '@/components/controls/filter-chip';
-import { EVENT_DAYS, EVENT_DAY_LABEL_KEYS } from '@/constants/event-days';
+import { FilterChip } from '@/src/components/controls/filter-chip';
+import { EVENT_DAYS, EVENT_DAY_LABEL_KEYS } from '@/src/constants/event-days';
 
 type PendingUser = {
   id: string;

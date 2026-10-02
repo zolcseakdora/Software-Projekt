@@ -5,7 +5,7 @@ import { Alert } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 
-import { TeamManagementScreen } from '@/screens/team-management-screen';
+import { TeamManagementScreen } from '@/src/screens/team-management-screen';
 import { useAuth } from '@/src/context/AuthContext';
 import { db } from '@/src/config/firebase';
 import { useTeams } from '@/src/hooks/use-teams';

@@ -3,7 +3,7 @@ import { Alert } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 
-import { AdminDashboardScreen } from '@/screens/admin-dashboard-screen';
+import { AdminDashboardScreen } from '@/src/screens/admin-dashboard-screen';
 import { useAdmin } from '@/src/hooks/use-admin';
 
 export default function AdminRoute() {

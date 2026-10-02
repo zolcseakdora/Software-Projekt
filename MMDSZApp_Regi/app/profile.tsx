@@ -4,7 +4,7 @@ import { Alert } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useRouter } from 'expo-router';
 
-import { ProfileScreen } from '@/screens/profile-screen';
+import { ProfileScreen } from '@/src/screens/profile-screen';
 import { auth, db } from '@/src/config/firebase';
 import { useAuth } from '@/src/context/AuthContext';
 

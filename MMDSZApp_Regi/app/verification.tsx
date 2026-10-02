@@ -3,7 +3,7 @@ import { doc, updateDoc } from 'firebase/firestore';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 
-import { VerificationPendingScreen } from '@/screens/verification-pending-screen';
+import { VerificationPendingScreen } from '@/src/screens/verification-pending-screen';
 import { auth, db } from '@/src/config/firebase';
 import { useAuth } from '@/src/context/AuthContext';
 import { useToast } from '@/src/context/ToastContext';

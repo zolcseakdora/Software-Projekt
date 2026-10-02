@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'expo-router';
 
-import { ScheduleScreen } from '@/screens/schedule-screen';
+import { ScheduleScreen } from '@/src/screens/schedule-screen';
 import { useAuth } from '@/src/context/AuthContext';
 import { usePrograms } from '@/src/hooks/use-programs';
 

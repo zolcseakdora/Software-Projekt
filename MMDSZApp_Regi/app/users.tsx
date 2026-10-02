@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { useRouter } from 'expo-router';
 
-import { RegisteredUsersScreen } from '@/screens/registered-users-screen';
+import { RegisteredUsersScreen } from '@/src/screens/registered-users-screen';
 import { useAdmin } from '@/src/hooks/use-admin';
 
 export default function RegisteredUsersRoute() {

@@ -3,7 +3,7 @@ import { Alert } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 
-import { PhotoHuntScreen } from '@/screens/photo-hunt-screen';
+import { PhotoHuntScreen } from '@/src/screens/photo-hunt-screen';
 import { usePhotoHunt } from '@/src/hooks/use-photo-hunt';
 
 export default function PhotoHuntRoute() {
