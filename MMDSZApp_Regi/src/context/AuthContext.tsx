@@ -8,6 +8,7 @@ import {
   type User,
 } from 'firebase/auth';
 import { doc, onSnapshot, setDoc } from 'firebase/firestore';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import { auth, db } from '@/src/config/firebase';
 import type { AuthState, RegistrationInput, UserProfile } from '@/src/types/auth';
@@ -97,6 +98,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
       await sendPasswordResetEmail(auth, email);
     },
     logout: async () => {
+      await AsyncStorage.clear();
       await signOut(auth);
     },
   };

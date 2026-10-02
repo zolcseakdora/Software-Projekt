@@ -17,15 +17,13 @@ function RootLayoutNav() {
   const router = useRouter();
   
   const [isReady, setIsReady] = useState(false);
-  const [hasLanguage, setHasLanguage] = useState(false);
 
   useEffect(() => {
-    const checkLang = async () => {
+    const initLang = async () => {
       try {
         const savedLang = await AsyncStorage.getItem('appLanguage');
         if (savedLang) {
           await i18n.changeLanguage(savedLang);
-          setHasLanguage(true);
         }
       } catch (e) {
         console.error("Language check failed", e);
@@ -33,25 +31,32 @@ function RootLayoutNav() {
         setIsReady(true);
       }
     };
-    checkLang();
+    initLang();
   }, []);
 
   useEffect(() => {
     if (!isReady || isLoading) return; 
 
-    const currentGroup = segments[0]; 
-    const inAuthGroup = currentGroup === 'auth' || currentGroup === 'language' || currentGroup === 'verification';
-    
-    if (!hasLanguage) {
-      if (currentGroup !== 'language') router.replace('/language');
-    } else if (!isLoggedIn) {
-      if (currentGroup !== 'auth') router.replace('/auth');
-    } else if (isLoggedIn && !profile?.isVerified && profile?.role !== 'Főszervező') {
-      if (currentGroup !== 'verification') router.replace('/verification');
-    } else if (inAuthGroup) {
-      router.replace('/');
-    }
-  }, [isLoggedIn, profile, hasLanguage, isReady, isLoading, segments, router]);
+    const checkRouteAndRedirect = async () => {
+      const savedLang = await AsyncStorage.getItem('appLanguage');
+      const hasLang = !!savedLang;
+      
+      const currentGroup = segments[0]; 
+      const inAuthGroup = currentGroup === 'auth' || currentGroup === 'language' || currentGroup === 'verification';
+      
+      if (!hasLang) {
+        if (currentGroup !== 'language') router.replace('/language');
+      } else if (!isLoggedIn) {
+        if (currentGroup !== 'auth') router.replace('/auth');
+      } else if (isLoggedIn && !profile?.isVerified && profile?.role !== 'Főszervező') {
+        if (currentGroup !== 'verification') router.replace('/verification');
+      } else if (inAuthGroup) {
+        router.replace('/');
+      }
+    };
+
+    checkRouteAndRedirect();
+  }, [isLoggedIn, profile, isReady, isLoading, segments]);
 
   if (!isReady || isLoading) return null; 
 
