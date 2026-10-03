@@ -8,6 +8,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useColorScheme } from '@/src/hooks/use-color-scheme';
 import { AuthProvider, useAuth } from '@/src/context/AuthContext';
 import { ToastProvider } from '@/src/context/ToastContext';
+import { UserRole } from '@/src/types/auth';
 
 function RootLayoutNav() {
   const colorScheme = useColorScheme();
@@ -48,7 +49,7 @@ function RootLayoutNav() {
         if (currentGroup !== 'language') router.replace('/language');
       } else if (!isLoggedIn) {
         if (currentGroup !== 'auth') router.replace('/auth');
-      } else if (isLoggedIn && !profile?.isVerified && profile?.role !== 'Főszervező') {
+      } else if (isLoggedIn && !profile?.isVerified && profile?.role !== UserRole.FOSZERVEZO) {
         if (currentGroup !== 'verification') router.replace('/verification');
       } else if (inAuthGroup) {
         router.replace('/');

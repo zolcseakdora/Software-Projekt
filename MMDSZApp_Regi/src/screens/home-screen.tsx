@@ -3,8 +3,10 @@ import { useTranslation } from 'react-i18next';
 
 import { MenuButton } from '@/src/components/features/home/menu-button';
 
+import { UserRole } from '@/src/types/auth';
+
 type HomeScreenProps = {
-  userRole: string;
+  userRole: UserRole;
   timeLeft: { days: number; hours: number; minutes: number };
   showIgazolasUpload: boolean;
   hasIgazolas: boolean;
@@ -47,13 +49,13 @@ export function HomeScreen({
   const { t } = useTranslation();
   const translatedRole = userRole === 'Főszervező'
     ? t('roles.headOrganizer')
-    : userRole === 'Szervező'
+    : userRole === UserRole.SZERVEZO
       ? t('roles.organizer')
-      : userRole === 'Csapatkapitány'
+      : userRole === UserRole.CSAPATKAPITANY
         ? t('roles.captain')
-        : userRole === 'Alcsapatkapitány'
+        : userRole === UserRole.ALCSAPATKAPITANY
           ? t('roles.deputy')
-          : userRole === 'Csapattag'
+          : userRole === UserRole.CSAPATTAG
             ? t('roles.member')
             : userRole;
 
@@ -116,7 +118,7 @@ export function HomeScreen({
             <MenuButton icon="📷" label={t('home.menuPhotoHunt')} onPress={onOpenPhotoHunt} />
             {isCaptainOrDeputy && <MenuButton icon="⚙️" label={t('home.menuTeamManagement')} onPress={onOpenTeamManagement} />}
             {isOrganizerOrHead && <MenuButton icon="👥" label={t('home.menuUsers')} onPress={onOpenRegisteredUsers} />}
-            {userRole === 'Főszervező' && <MenuButton icon="⚙️" label={t('home.menuAdmin')} onPress={onOpenAdmin} />}
+            {userRole === UserRole.FOSZERVEZO && <MenuButton icon="⚙️" label={t('home.menuAdmin')} onPress={onOpenAdmin} />}
           </View>
         </ScrollView>
       </View>

@@ -3,6 +3,8 @@ import { useTranslation } from 'react-i18next';
 
 import { FilterChip } from '@/src/components/controls/filter-chip';
 
+import { UserRole } from '@/src/types/auth';
+
 type TeamManagementScreenProps = {
   teamName: string;
   teamDescription: string;
@@ -10,7 +12,7 @@ type TeamManagementScreenProps = {
   teamLogo: string | null;
   teamFlag: string | null;
   inviteEmail: string;
-  inviteRole: 'Csapattag' | 'Alcsapatkapitány';
+  inviteRole: UserRole.CSAPATTAG | UserRole.ALCSAPATKAPITANY;
   onBack: () => void;
   onRefresh: () => void;
   onDescriptionChange: (value: string) => void;
@@ -18,7 +20,7 @@ type TeamManagementScreenProps = {
   onUploadTeamImage: (type: 'logo' | 'flag') => void;
   onSaveTeamData: () => void;
   onInviteEmailChange: (value: string) => void;
-  onInviteRoleChange: (role: 'Csapattag' | 'Alcsapatkapitány') => void;
+  onInviteRoleChange: (role: UserRole.CSAPATTAG | UserRole.ALCSAPATKAPITANY) => void;
   onSendTeamInvite: () => void;
 };
 
@@ -90,8 +92,18 @@ export function TeamManagementScreen({
             />
             <Text style={styles.profileLabel}>{t('teamManagement.chooseRole')}</Text>
             <View style={styles.roleRow}>
-              <FilterChip label={t('roles.member')} selected={inviteRole === 'Csapattag'} onPress={() => onInviteRoleChange('Csapattag')} style={styles.roleChip} />
-              <FilterChip label={t('roles.deputy')} selected={inviteRole === 'Alcsapatkapitány'} onPress={() => onInviteRoleChange('Alcsapatkapitány')} style={styles.roleChip} />
+             <FilterChip 
+                label={t('roles.member')} 
+                selected={inviteRole === UserRole.CSAPATTAG} 
+                onPress={() => onInviteRoleChange(UserRole.CSAPATTAG)} 
+                style={styles.roleChip} 
+              />
+              <FilterChip 
+                label={t('roles.deputy')} 
+                selected={inviteRole === UserRole.ALCSAPATKAPITANY} 
+                onPress={() => onInviteRoleChange(UserRole.ALCSAPATKAPITANY)} 
+                style={styles.roleChip} 
+              />
             </View>
             <TouchableOpacity style={styles.inviteButton} onPress={onSendTeamInvite}>
               <Text style={styles.solidButtonText}>{t('teamManagement.invite')}</Text>

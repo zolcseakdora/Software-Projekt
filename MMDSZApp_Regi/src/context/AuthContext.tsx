@@ -11,7 +11,7 @@ import { doc, onSnapshot, setDoc } from 'firebase/firestore';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import { auth, db } from '@/src/config/firebase';
-import type { AuthState, RegistrationInput, UserProfile } from '@/src/types/auth';
+import { AuthState, RegistrationInput, UserProfile, UserRole } from '@/src/types/auth';
 
 const initialAuthState: AuthState = {
   user: null,
@@ -31,12 +31,12 @@ type AuthContextValue = AuthState & {
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
 function toUserProfile(user: User, data: Record<string, unknown>): UserProfile {
-  const role = data.role;
-  const resolvedRole: UserProfile['role'] = user.email === 'dorazolcseak@gmail.com'
-    ? 'Főszervező'
-    : role === 'Alcsapatkapitány' || role === 'Csapatkapitány' || role === 'Szervező' || role === 'Főszervező'
-      ? role
-      : 'Csapattag';
+  const rawRole = data.role as string;
+  const resolvedRole: UserRole = user.email === 'dorazolcseak@gmail.com'
+    ? UserRole.FOSZERVEZO
+    : Object.values(UserRole).includes(rawRole as UserRole)
+      ? (rawRole as UserRole)
+      : UserRole.CSAPATTAG;
 
   return {
     name: typeof data.name === 'string' ? data.name : '',
@@ -89,7 +89,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
         name,
         email,
         team: team || 'Egyéni',
-        role: 'Csapattag',
+        role: UserRole.CSAPATTAG,
         createdAt: new Date(),
         isVerified: false,
       });

@@ -7,6 +7,7 @@ import { useRouter } from 'expo-router';
 import { ProfileScreen } from '@/src/screens/profile-screen';
 import { auth, db } from '@/src/config/firebase';
 import { useAuth } from '@/src/context/AuthContext';
+import { UserRole } from '@/src/types/auth';
 
 export default function ProfileRoute() {
   const router = useRouter();
@@ -51,7 +52,7 @@ export default function ProfileRoute() {
       name={profile?.name ?? ''}
       email={user?.email}
       team={profile?.team ?? ''}
-      role={profile?.role ?? 'Csapattag'}
+      role={profile?.role ?? UserRole.CSAPATTAG}
       profileImage={profile?.profileImage ?? null}
       hasIgazolas={Boolean(profile?.igazolas)}
       isVerified={profile?.isVerified ?? false}

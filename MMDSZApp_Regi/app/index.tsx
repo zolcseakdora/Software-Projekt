@@ -10,6 +10,8 @@ import { auth, db } from '@/src/config/firebase';
 import { useAuth } from '@/src/context/AuthContext';
 import { useToast } from '@/src/context/ToastContext';
 
+import { UserRole } from '@/src/types/auth';
+
 export default function App() {
   const { showToast } = useToast();
   const { t } = useTranslation();
@@ -17,14 +19,14 @@ export default function App() {
   const { profile, logout } = useAuth();
   const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0 });
 
-  const userRole = profile?.role ?? 'Csapattag';
+  const userRole = profile?.role ?? UserRole.CSAPATTAG;
   const hasIgazolas = Boolean(profile?.igazolas);
   const isVerified = profile?.isVerified ?? false;
   const safeRole = userRole.toLowerCase();
   
-  const isOrganizerOrHead = safeRole.includes('szervez');
-  const showIgazolasUpload = safeRole.includes('csapat') || safeRole.includes('kapitany') || safeRole.includes('kapitány');
-  const isCaptainOrDeputy = safeRole.includes('kapitany') || safeRole.includes('kapitány');
+  const isOrganizerOrHead = userRole === UserRole.FOSZERVEZO || userRole === UserRole.SZERVEZO;
+  const isCaptainOrDeputy = userRole === UserRole.CSAPATKAPITANY || userRole === UserRole.ALCSAPATKAPITANY;
+  const showIgazolasUpload = userRole === UserRole.CSAPATTAG || isCaptainOrDeputy;
 
   useEffect(() => {
     const targetDate = new Date('2027-05-20T00:00:00');

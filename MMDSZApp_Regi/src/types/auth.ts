@@ -1,11 +1,12 @@
 import type { User } from 'firebase/auth';
 
-export type UserRole =
-  | 'Csapattag'
-  | 'Alcsapatkapitány'
-  | 'Csapatkapitány'
-  | 'Szervező'
-  | 'Főszervező';
+export enum UserRole {
+  FOSZERVEZO = 'Főszervező',
+  SZERVEZO = 'Szervező',
+  CSAPATKAPITANY = 'Csapatkapitány',
+  ALCSAPATKAPITANY = 'Alcsapatkapitány',
+  CSAPATTAG = 'Csapattag'
+}
 
 export type UserProfile = {
   name: string;

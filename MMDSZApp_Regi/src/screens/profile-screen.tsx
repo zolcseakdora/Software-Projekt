@@ -1,11 +1,12 @@
 import { Image, SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
+import { UserRole } from '@/src/types/auth';
 
 type ProfileScreenProps = {
   name: string;
   email?: string | null;
   team: string;
-  role: string;
+  role: UserRole;
   profileImage: string | null;
   hasIgazolas: boolean;
   isVerified: boolean;
@@ -27,13 +28,13 @@ export function ProfileScreen({
   const { t } = useTranslation();
   const translatedRole = role === 'Főszervező'
     ? t('roles.headOrganizer')
-    : role === 'Szervező'
+    : role === UserRole.SZERVEZO
       ? t('roles.organizer')
-      : role === 'Csapatkapitány'
+      : role === UserRole.CSAPATKAPITANY
         ? t('roles.captain')
-        : role === 'Alcsapatkapitány'
+        : role === UserRole.ALCSAPATKAPITANY
           ? t('roles.deputy')
-          : role === 'Csapattag'
+          : role === UserRole.CSAPATTAG
             ? t('roles.member')
             : role;
 

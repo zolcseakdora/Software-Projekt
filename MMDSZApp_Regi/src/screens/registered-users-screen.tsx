@@ -1,10 +1,11 @@
 import { SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
+import { UserRole } from '@/src/types/auth';
 
 type RegisteredUser = {
   id: string;
   name?: string;
-  role?: string;
+  role?: UserRole;
   igazolas?: string;
 };
 
@@ -41,13 +42,13 @@ export function RegisteredUsersScreen({ users, onBack, onRefresh }: RegisteredUs
   );
 }
 
-function translateRole(role: string | undefined, t: (key: string) => string) {
+function translateRole(role: UserRole | undefined, t: (key: string) => string) {
   switch (role) {
-    case 'Főszervező': return t('roles.headOrganizer');
-    case 'Szervező': return t('roles.organizer');
-    case 'Csapatkapitány': return t('roles.captain');
-    case 'Alcsapatkapitány': return t('roles.deputy');
-    case 'Csapattag': return t('roles.member');
+    case UserRole.FOSZERVEZO: return t('roles.headOrganizer');
+    case UserRole.SZERVEZO: return t('roles.organizer');
+    case UserRole.CSAPATKAPITANY: return t('roles.captain');
+    case UserRole.ALCSAPATKAPITANY: return t('roles.deputy');
+    case UserRole.CSAPATTAG: return t('roles.member');
     default: return role ?? '';
   }
 }

@@ -10,7 +10,9 @@ import { useAuth } from '@/src/context/AuthContext';
 import { db } from '@/src/config/firebase';
 import { useTeams } from '@/src/hooks/use-teams';
 
-type InviteRole = 'Csapattag' | 'Alcsapatkapitány';
+import { UserRole } from '@/src/types/auth';
+
+type InviteRole = UserRole.CSAPATTAG | UserRole.ALCSAPATKAPITANY;
 
 export default function TeamManagementRoute() {
   const router = useRouter();
@@ -23,7 +25,7 @@ export default function TeamManagementRoute() {
   const [teamLogo, setTeamLogo] = useState<string | null>(null);
   const [teamFlag, setTeamFlag] = useState<string | null>(null);
   const [inviteEmail, setInviteEmail] = useState('');
-  const [inviteRole, setInviteRole] = useState<InviteRole>('Csapattag');
+  const [inviteRole, setInviteRole] = useState<InviteRole>(UserRole.CSAPATTAG);
 
   const refresh = useCallback(async () => {
     if (!teamName) return;
@@ -82,13 +84,13 @@ export default function TeamManagementRoute() {
     }
 
     try {
-      const translatedRole = inviteRole === 'Csapattag' ? t('roles.member') : t('roles.deputy');
+      const translatedRole = inviteRole === UserRole.CSAPATTAG ? t('roles.member') : t('roles.deputy');
       const body = t('teamManagement.inviteEmailBody', { teamName, role: translatedRole });
       await addDoc(collection(db, 'invites'), {
         email: inviteEmail,
         team: teamName,
         role: inviteRole,
-        invitedBy: profile?.name || 'Csapatkapitány',
+        invitedBy: profile?.name || UserRole.CSAPATKAPITANY,
         createdAt: new Date(),
         status: 'Függőben',
       });
